@@ -4,4 +4,5 @@
 
     <string name="iniciarSesion_str">Iniciar sesion</string>
     <string name="rutas_str">Rutas</string>
+    <string name="rutasDisponibles_str">Rutas disponibles</string>
 </resources>

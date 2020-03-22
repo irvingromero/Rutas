@@ -29,51 +29,26 @@
             android:id="@+id/btnMenu_maps"
             android:layout_width="45dp"
             android:layout_height="45dp"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="8dp"
             android:layout_marginLeft="8dp"
             android:background="@drawable/menu_icono"/>
-<!--
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/fabMejorPrecio_maps"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/btnMenu_maps"
-            android:layout_marginLeft="5dp"
-            android:backgroundTint="@color/colorPrimary"
-            android:src="@drawable/mejor_precio_icono"
-            android:visibility="gone"/>
 
-        <TextView
-            android:id="@+id/tvMejorPrecio_maps"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/fabMejorPrecio_maps"
-            android:textColor="@color/colorNegro"
-            android:textSize="10sp"
-            android:layout_marginLeft="1dp"/>
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/cg_MapsActivity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_gravity="center_horizontal"
+                android:visibility="gone"
+                android:animateLayoutChanges="true">
+            </com.google.android.material.chip.ChipGroup>
+        </FrameLayout>
     </RelativeLayout>
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/cg_MapsActivity"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:layout_gravity="center_horizontal"
-            android:visibility="gone">
-        </com.google.android.material.chip.ChipGroup>
-    </FrameLayout>
-
-    <androidx.coordinatorlayout.widget.CoordinatorLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <include layout="@layout/datos_recicladora"/>
-    </androidx.coordinatorlayout.widget.CoordinatorLayout>
--->
-    </RelativeLayout>
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -111,7 +86,8 @@
                 android:layout_marginLeft="25dp"
                 android:layout_marginRight="25dp"
                 android:layout_marginTop="5dp"
-                app:rippleColor="@color/colorNegro" />
+                app:rippleColor="@color/colorNegro"
+                android:onClick="ventanaRutas"/>
         </LinearLayout>
     </ScrollView>
 </androidx.drawerlayout.widget.DrawerLayout>
