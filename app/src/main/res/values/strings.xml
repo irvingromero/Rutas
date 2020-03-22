@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Rutas</string>
+    <string name="title_activity_maps">Map</string>
+
+    <string name="iniciarSesion_str">Iniciar sesion</string>
+    <string name="rutas_str">Rutas</string>
+</resources>
