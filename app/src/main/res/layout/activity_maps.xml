@@ -29,7 +29,7 @@
             android:id="@+id/btnMenu_maps"
             android:layout_width="45dp"
             android:layout_height="45dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:layout_marginLeft="8dp"
             android:background="@drawable/menu_icono"/>
 
@@ -41,7 +41,7 @@
                 android:id="@+id/cg_MapsActivity"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="7dp"
                 android:layout_gravity="center_horizontal"
                 android:visibility="gone"
                 android:animateLayoutChanges="true">
@@ -63,7 +63,7 @@
             android:orientation="vertical">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnIniciarSesion"
+                android:id="@+id/btnIniciarSesion_maps"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/iniciarSesion_str"
@@ -73,10 +73,10 @@
                 android:layout_marginLeft="25dp"
                 android:layout_marginRight="25dp"
                 android:layout_marginTop="10dp"
-                app:rippleColor="@color/colorNegro"/>
+                app:rippleColor="@color/colorNegro" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnBuscarMaterial"
+                android:id="@+id/btnRutas_maps"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/rutas_str"
@@ -86,8 +86,7 @@
                 android:layout_marginLeft="25dp"
                 android:layout_marginRight="25dp"
                 android:layout_marginTop="5dp"
-                app:rippleColor="@color/colorNegro"
-                android:onClick="ventanaRutas"/>
+                app:rippleColor="@color/colorNegro" />
         </LinearLayout>
     </ScrollView>
 </androidx.drawerlayout.widget.DrawerLayout>

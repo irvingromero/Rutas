@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">Rutas</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="title_activity_fullscreen">Rutas</string>
 
     <string name="iniciarSesion_str">Iniciar sesion</string>
     <string name="rutas_str">Rutas</string>
     <string name="rutasDisponibles_str">Rutas disponibles</string>
+
+    <string name="mensaje">Para el correcto funcionamiento de la app, Por favor acepta el permiso de ubicacion : )</string>
 </resources>

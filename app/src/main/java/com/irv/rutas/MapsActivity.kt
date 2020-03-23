@@ -31,6 +31,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 
@@ -43,8 +44,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private var miUbicacion : Location? = null
     private var listaRutas : ArrayList<String>? = null
     private var chipgroup : ChipGroup? = null
-    private var banderaChip = false
-    private var chipItem : Chip? = null
+    private var btnRutas : MaterialButton? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,27 +58,37 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         drawerLayout?.setScrimColor(Color.TRANSPARENT)
         content = findViewById(R.id.content)
         chipgroup = findViewById(R.id.cg_MapsActivity)
-
-        val i = LayoutInflater.from(this@MapsActivity)
-        chipItem = i.inflate(R.layout.chip, null , false) as Chip
+        btnRutas = findViewById(R.id.btnRutas_maps)
 
         menuSlide()
         findViewById<ImageButton>(R.id.btnMenu_maps).setOnClickListener {
             drawerLayout?.openDrawer(GravityCompat.START)
             estadoDrawer = true
         }
-        ///// RUTAS /////
+
+        findViewById<MaterialButton>(R.id.btnRutas_maps).setOnClickListener {
+            ventanaRutas()
+        }
+
+            ///// RUTAS /////
         listaRutas = ArrayList()
+        listaRutas?.add("Ruta 4")
         listaRutas?.add("Ruta 9")
         listaRutas?.add("Eje")
         listaRutas?.add("Nacionalista")
+        listaRutas?.add("Ejido puebla")
+        listaRutas?.add("Ruta 5")
+        listaRutas?.add("Robledo")
+        listaRutas?.add("Colosio")
+        listaRutas?.add("Progreso")
+        listaRutas?.add("Comandancia")
+        listaRutas?.sort() //ORDENA ALFABETICAMENTE //
     }
 
     private fun menuSlide(){
         drawerLayout?.addDrawerListener(object : ActionBarDrawerToggle(this, drawerLayout,0,0){
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
                 super.onDrawerSlide(drawerView, slideOffset)
-
                 val slideX = drawerView.width * slideOffset
                 content?.translationX = slideX
             }
@@ -103,6 +113,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap = googleMap
         mMap.uiSettings.isZoomControlsEnabled = true
         mMap.uiSettings.isCompassEnabled = false
+        mMap.setMinZoomPreference(11.0f)
 
         permiso()
         camaraAubicacion()
@@ -160,7 +171,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         } catch (e: Exception) { }
     }
 
-    fun ventanaRutas(view : View) {
+    private fun ventanaRutas() {
         cerrarDrawer()
 
         val ventana = AlertDialog.Builder(this, R.style.CustomDialogTheme)
@@ -183,25 +194,21 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             dialog.dismiss()
             chipRuta(view, ruta.toString())
             mMap.clear()
+            btnRutas?.isEnabled = false
         }
     }
 
     private fun chipRuta(vista : View , ruta : String){
+        val i = LayoutInflater.from(this)
+        val chipItem = i.inflate(R.layout.chip, null , false) as Chip
 
+        chipItem.text = ruta
+        chipgroup?.addView(chipItem)
+        chipgroup?.visibility = View.VISIBLE
 
-        if(!banderaChip){
-            chipItem?.text = ruta
-            chipgroup?.addView(chipItem)
-            chipgroup?.visibility = View.VISIBLE
-            banderaChip = true
-        } else {
-            banderaChip = false
-            ventanaRutas(vista)
-            chipgroup?.removeView(chipItem)
-        }
-
-        chipItem?.setOnClickListener {
-            ventanaRutas(vista)
+        chipItem.setOnClickListener {
+            ventanaRutas()
+            btnRutas?.isEnabled = true
 
             val anim = AlphaAnimation(1f,0f)
             anim.duration = 1
@@ -210,16 +217,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 override fun onAnimationRepeat(animation: Animation?) {}
                 override fun onAnimationEnd(animation: Animation?) {
                     chipgroup?.removeView(it)
-                    banderaChip = false
                 }
                 override fun onAnimationStart(animation: Animation?) {}
             })
             it.startAnimation(anim)
         }
 
-        chipItem?.setOnCloseIconClickListener {
+        chipItem.setOnCloseIconClickListener {
             chipgroup?.removeView(chipItem)
-            banderaChip = false
+            btnRutas?.isEnabled = true
         }
     }
 
