@@ -61,7 +61,7 @@
             android:layout_gravity="start"
             android:background="@android:color/white"
             android:orientation="vertical">
-
+<!--
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnIniciarSesion_maps"
                 android:layout_width="match_parent"
@@ -74,7 +74,7 @@
                 android:layout_marginRight="25dp"
                 android:layout_marginTop="10dp"
                 app:rippleColor="@color/colorNegro" />
-
+-->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRutas_maps"
                 android:layout_width="match_parent"

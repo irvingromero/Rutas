@@ -16,8 +16,8 @@ import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
 import android.widget.LinearLayout
 import android.widget.ImageButton
-import android.widget.ArrayAdapter
 import android.widget.ListView
+import android.widget.ArrayAdapter
 import android.widget.AdapterView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
@@ -31,6 +31,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -39,12 +40,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private var estadoDrawer = false // Bandera para saber el estado del drawer Abierto o Cerrado ///
-    private var drawerLayout : DrawerLayout? = null
-    private var content : LinearLayout? = null //// LAYOUT QUE CONTIENE AL MAPA ////
-    private var miUbicacion : Location? = null
-    private var listaRutas : ArrayList<String>? = null
-    private var chipgroup : ChipGroup? = null
-    private var btnRutas : MaterialButton? = null
+    private var drawerLayout: DrawerLayout? = null
+    private var content: LinearLayout? = null //// LAYOUT QUE CONTIENE AL MAPA ////
+    private var miUbicacion: Location? = null
+    private var listaRutas: ArrayList<String>? = null
+    private var chipgroup: ChipGroup? = null
+    private var btnRutas: MaterialButton? = null
+
+    var poly : ArrayList<LatLng>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,21 +75,13 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
             ///// RUTAS /////
         listaRutas = ArrayList()
-        listaRutas?.add("Ruta 4")
         listaRutas?.add("Ruta 9")
-        listaRutas?.add("Eje")
         listaRutas?.add("Nacionalista")
-        listaRutas?.add("Ejido puebla")
-        listaRutas?.add("Ruta 5")
-        listaRutas?.add("Robledo")
-        listaRutas?.add("Colosio")
-        listaRutas?.add("Progreso")
-        listaRutas?.add("Comandancia")
         listaRutas?.sort() //ORDENA ALFABETICAMENTE //
     }
 
-    private fun menuSlide(){
-        drawerLayout?.addDrawerListener(object : ActionBarDrawerToggle(this, drawerLayout,0,0){
+    private fun menuSlide() {
+        drawerLayout?.addDrawerListener(object : ActionBarDrawerToggle(this, drawerLayout, 0, 0) {
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
                 super.onDrawerSlide(drawerView, slideOffset)
                 val slideX = drawerView.width * slideOffset
@@ -97,6 +92,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 super.onDrawerClosed(drawerView)
                 estadoDrawer = false // MENU CERRADO
             }
+
             override fun onDrawerOpened(drawerView: View) {
                 super.onDrawerOpened(drawerView)
                 estadoDrawer = true // MENU SE ENCUENTRA ABIERTO
@@ -104,7 +100,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         })
     }
 
-    private fun cerrarDrawer(){
+    private fun cerrarDrawer() {
         drawerLayout?.closeDrawer(GravityCompat.START)
         estadoDrawer = false
     }
@@ -127,8 +123,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             permisoActivado = estadoPermisoUbicacion()
 
             if (permisoActivado == false) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION))
-                {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
                     //// MIUESTRA EL DIALOG PARA EL PERMISO ////
                     ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 10)
                 }
@@ -157,7 +152,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     @SuppressLint("MissingPermission")
-    private fun camaraAubicacion(){
+    private fun camaraAubicacion() {
         val locationManager = applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val criteria = Criteria()
         miUbicacion = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false))
@@ -190,34 +185,36 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         dialog.show()
 
         listaview.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
+            mMap.clear()
             val ruta = parent.getItemAtPosition(position)
             dialog.dismiss()
             chipRuta(view, ruta.toString())
-            mMap.clear()
             btnRutas?.isEnabled = false
+            seleccionRuta(ruta.toString())
         }
     }
 
-    private fun chipRuta(vista : View , ruta : String){
+    private fun chipRuta(vista : View, ruta : String) {
         val i = LayoutInflater.from(this)
-        val chipItem = i.inflate(R.layout.chip, null , false) as Chip
+        val chipItem = i.inflate(R.layout.chip, null, false) as Chip
 
         chipItem.text = ruta
         chipgroup?.addView(chipItem)
         chipgroup?.visibility = View.VISIBLE
 
         chipItem.setOnClickListener {
+            mMap.clear()
             ventanaRutas()
             btnRutas?.isEnabled = true
 
-            val anim = AlphaAnimation(1f,0f)
+            val anim = AlphaAnimation(1f, 0f)
             anim.duration = 1
-            anim.setAnimationListener(object : Animation.AnimationListener
-            {
+            anim.setAnimationListener(object : Animation.AnimationListener {
                 override fun onAnimationRepeat(animation: Animation?) {}
                 override fun onAnimationEnd(animation: Animation?) {
                     chipgroup?.removeView(it)
                 }
+
                 override fun onAnimationStart(animation: Animation?) {}
             })
             it.startAnimation(anim)
@@ -226,14 +223,73 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         chipItem.setOnCloseIconClickListener {
             chipgroup?.removeView(chipItem)
             btnRutas?.isEnabled = true
+            mMap.clear()
         }
     }
 
     override fun onBackPressed() {
-        if(estadoDrawer){
+        if (estadoDrawer) {
             cerrarDrawer()
         } else {
             super.onBackPressed()
         }
+    }
+
+    private fun decodePoly(encoded : String): ArrayList<LatLng>? {
+        poly  = ArrayList()
+        var index = 0
+        val len = encoded.length
+        var lat = 0
+        var lng = 0
+        while (index < len) {
+            var b: Int
+            var shift = 0
+            var result = 0
+            do {
+                b = encoded[index++].toInt() - 63
+                result = result or (b and 0x1f shl shift)
+                shift += 5
+            } while (b >= 0x20)
+            val dlat = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+            lat += dlat
+            shift = 0
+            result = 0
+            do {
+                b = encoded[index++].toInt() - 63
+                result = result or (b and 0x1f shl shift)
+                shift += 5
+            } while (b >= 0x20)
+            val dlng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
+            lng += dlng
+            val p = LatLng(lat.toDouble() / 1E5, lng.toDouble() / 1E5)
+            poly?.add(p)
+        }
+        return poly
+    }
+
+    private fun seleccionRuta(ruta: String) {
+        when (ruta) {
+            "Ruta 9" -> ruta9()
+            "Nacionalista" -> nacionalista()
+        }
+    }
+
+    private fun ruta9(){
+        val ruta = "cdifEn_b`UbC@vCEfC?vDBtAAtA?`E@tL?tKHdE?xPBfD?`DB`H?tN@jLBvCAR?FFD@`@H|@Xf@BpBA~A?vDDF?pAG|Ba@b@CLEfA@fBBxAC|DDz@FfB`@l@\\|@f@`An@d@Rp@Pp@Jn@BbB?`AHrATj@JdBFnIA|@A"
+
+        var points: ArrayList<LatLng>? = null
+        var polylineOptions : PolylineOptions? = null
+
+        points = decodePoly(ruta)
+
+        polylineOptions = PolylineOptions()
+        polylineOptions.color(Color.RED)
+        polylineOptions.addAll(points)
+        mMap.addPolyline(polylineOptions)
+        mMap.addPolyline(polylineOptions)
+    }
+
+    private fun nacionalista(){
+
     }
 }
