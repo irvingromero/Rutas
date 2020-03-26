@@ -61,20 +61,7 @@
             android:layout_gravity="start"
             android:background="@android:color/white"
             android:orientation="vertical">
-<!--
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnIniciarSesion_maps"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/iniciarSesion_str"
-                app:icon="@drawable/usuario_icono"
-                app:iconTint="@color/colorNegro"
-                app:cornerRadius="30dp"
-                android:layout_marginLeft="25dp"
-                android:layout_marginRight="25dp"
-                android:layout_marginTop="10dp"
-                app:rippleColor="@color/colorNegro" />
--->
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRutas_maps"
                 android:layout_width="match_parent"
@@ -83,9 +70,21 @@
                 app:icon="@drawable/camion_icono"
                 app:iconTint="@color/colorNegro"
                 app:cornerRadius="30dp"
-                android:layout_marginLeft="25dp"
-                android:layout_marginRight="25dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
                 android:layout_marginTop="5dp"
+                app:rippleColor="@color/colorNegro"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Seleccionar rutas"
+                app:icon="@drawable/usuario_icono"
+                app:iconTint="@color/colorNegro"
+                app:cornerRadius="30dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:layout_marginTop="10dp"
                 app:rippleColor="@color/colorNegro" />
         </LinearLayout>
     </ScrollView>
