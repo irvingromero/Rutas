@@ -14,11 +14,11 @@
         android:layout_height="wrap_content">
 
         <fragment
+            android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/map"
-            tools:context=".MapsActivity"
-            android:name="com.google.android.gms.maps.SupportMapFragment"/>
+            tools:context=".MapsActivity" />
     </LinearLayout>
 
     <RelativeLayout
@@ -30,8 +30,39 @@
             android:layout_width="45dp"
             android:layout_height="45dp"
             android:layout_marginTop="6dp"
-            android:layout_marginLeft="8dp"
+            android:layout_marginStart="7dp"
             android:background="@drawable/menu_icono"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/btnUbicacion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:layout_marginStart="6dp"
+            android:backgroundTint="@color/colorPrimary"
+            android:layout_alignParentBottom="true"
+            android:src="@drawable/ubicacion_icono"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabZoomMenos"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="7dp"
+            android:layout_marginBottom="10dp"
+            android:src="@drawable/zoom_menos_icono"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:backgroundTint="@color/colorPrimary"/>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fabZoomMas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@id/fabZoomMenos"
+            android:layout_margin="6dp"
+            android:layout_alignParentEnd="true"
+            android:backgroundTint="@color/colorPrimary"
+            android:src="@drawable/zoom_mas_icono"/>
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -76,6 +107,7 @@
                 app:rippleColor="@color/colorNegro"/>
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/todas"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Seleccionar rutas"

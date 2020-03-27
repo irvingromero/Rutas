@@ -35,6 +35,9 @@ import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.activity_maps.*
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -46,6 +49,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private var listaRutas: ArrayList<String>? = null
     private var chipgroup: ChipGroup? = null
     private var btnRutas: MaterialButton? = null
+    private var btnUbicacion : FloatingActionButton? = null
+    private var fbaZoomMenos : FloatingActionButton? = null
+    private var fbaZoomMas : FloatingActionButton? = null
 
     private var poly: ArrayList<LatLng>? = null
     private val rutaPuntos: ArrayList<String> = ArrayList()
@@ -65,24 +71,43 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         content = findViewById(R.id.content)
         chipgroup = findViewById(R.id.cg_MapsActivity)
         btnRutas = findViewById(R.id.btnRutas_maps)
+        btnUbicacion = findViewById(R.id.btnUbicacion)
+        fbaZoomMenos = findViewById(R.id.fabZoomMenos)
+        fbaZoomMas = findViewById(R.id.fabZoomMas)
 
         menuSlide()
-        findViewById<ImageButton>(R.id.btnMenu_maps).setOnClickListener {
-            drawerLayout?.openDrawer(GravityCompat.START)
-            estadoDrawer = true
-        }
-
-        findViewById<MaterialButton>(R.id.btnRutas_maps).setOnClickListener {
-            ventanaRutas()
-        }
 
         ///// RUTAS /////
         listaRutas = ArrayList()
         listaRutas?.add("Ruta 9")
         listaRutas?.add("Nacionalista")
         listaRutas?.add("Eje")
-//        listaRutas?.add("Ruta 4")
         listaRutas?.sort() //ORDENA ALFABETICAMENTE //
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        findViewById<ImageButton>(R.id.btnMenu_maps).setOnClickListener {
+            drawerLayout?.openDrawer(GravityCompat.START)
+            estadoDrawer = true
+        }
+
+        btnRutas?.setOnClickListener {
+            ventanaRutas()
+        }
+
+        btnUbicacion?.setOnClickListener {
+            camaraAubicacion()
+        }
+
+        fabZoomMenos?.setOnClickListener {
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(mMap.cameraPosition.zoom - 0.9f))
+        }
+
+        fabZoomMas?.setOnClickListener {
+            mMap.animateCamera(CameraUpdateFactory.zoomTo(mMap.cameraPosition.zoom + 0.9f))
+        }
     }
 
     private fun menuSlide() {
@@ -113,12 +138,28 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-        mMap.uiSettings.isZoomControlsEnabled = true
-        mMap.uiSettings.isCompassEnabled = false
+        mMap.uiSettings.isMyLocationButtonEnabled = false
+        mMap.uiSettings.isZoomControlsEnabled = false
+        mMap.uiSettings.isCompassEnabled = true
         mMap.setMinZoomPreference(11.0f)
+        mMap.setPadding(0, 90, 0, 0)
 
         permiso()
         camaraAubicacion()
+
+        mMap.setOnMapClickListener {
+            if(btnUbicacion?.visibility == View.VISIBLE){
+                btnUbicacion?.hide()
+                fabZoomMenos.hide()
+                fabZoomMas.hide()
+            }
+
+            if(btnUbicacion?.visibility == View.GONE){
+                btnUbicacion?.show()
+                fabZoomMenos.show()
+                fabZoomMas.show()
+            }
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -166,9 +207,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             val latitude = miUbicacion?.latitude
             val longitud = miUbicacion?.longitude
 
-            val latlog = LatLng(latitude!!, longitud!!)
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(latlog))
-            mMap.setMinZoomPreference(11.0f)
+            if(latitude != null && longitud != null){
+                val latlog = LatLng(latitude, longitud)
+                val cu = CameraUpdateFactory.newLatLng(latlog)
+                mMap.animateCamera(cu)
+                mMap.setMinZoomPreference(11.0f)
+            } else {
+                Snackbar.make(findViewById(R.id.map), "Ubicacion no disponible", Snackbar.LENGTH_LONG).show()
+            }
         } catch (e: Exception) { }
     }
 
