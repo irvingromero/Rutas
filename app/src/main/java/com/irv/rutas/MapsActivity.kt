@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.location.Criteria
 import android.location.Location
@@ -14,27 +15,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
-import android.widget.LinearLayout
-import android.widget.ImageButton
 import android.widget.ListView
 import android.widget.ArrayAdapter
 import android.widget.AdapterView
-import androidx.appcompat.app.ActionBarDrawerToggle
+import android.widget.Toast
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PolylineOptions
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_maps.*
@@ -42,18 +40,16 @@ import kotlinx.android.synthetic.main.activity_maps.*
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
-    private var estadoDrawer = false // Bandera para saber el estado del drawer Abierto o Cerrado ///
-    private var drawerLayout: DrawerLayout? = null
-    private var content: LinearLayout? = null //// LAYOUT QUE CONTIENE AL MAPA ////
     private var miUbicacion: Location? = null
-    private var listaRutas: ArrayList<String>? = null
     private var chipgroup: ChipGroup? = null
-    private var btnRutas: MaterialButton? = null
     private var btnUbicacion : FloatingActionButton? = null
     private var fbaZoomMenos : FloatingActionButton? = null
     private var fbaZoomMas : FloatingActionButton? = null
+    private var efabRutas : ExtendedFloatingActionButton? = null
+    private var listaRutas : ArrayList<String>? = null
+    private var rutaSeleccionada : ArrayList<String> = ArrayList()
 
-    private var poly: ArrayList<LatLng>? = null
+    private var poly: ArrayList<LatLng>? = null//decodificador//
     private val rutaPuntos: ArrayList<String> = ArrayList()
     private var points: ArrayList<LatLng>? = null
     private var polylineOptions: PolylineOptions? = null
@@ -66,16 +62,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        drawerLayout = findViewById(R.id.drawerLayout)
-        drawerLayout?.setScrimColor(Color.TRANSPARENT)
-        content = findViewById(R.id.content)
         chipgroup = findViewById(R.id.cg_MapsActivity)
-        btnRutas = findViewById(R.id.btnRutas_maps)
         btnUbicacion = findViewById(R.id.btnUbicacion)
         fbaZoomMenos = findViewById(R.id.fabZoomMenos)
         fbaZoomMas = findViewById(R.id.fabZoomMas)
-
-        menuSlide()
+        efabRutas = findViewById(R.id.btnRutas_maps)
 
         ///// RUTAS /////
         listaRutas = ArrayList()
@@ -88,12 +79,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onStart() {
         super.onStart()
 
-        findViewById<ImageButton>(R.id.btnMenu_maps).setOnClickListener {
-            drawerLayout?.openDrawer(GravityCompat.START)
-            estadoDrawer = true
-        }
-
-        btnRutas?.setOnClickListener {
+        efabRutas?.setOnClickListener {
             ventanaRutas()
         }
 
@@ -110,39 +96,12 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun menuSlide() {
-        drawerLayout?.addDrawerListener(object : ActionBarDrawerToggle(this, drawerLayout, 0, 0) {
-
-            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {
-                super.onDrawerSlide(drawerView, slideOffset)
-                val slideX = drawerView.width * slideOffset
-                content?.translationX = slideX
-            }
-
-            override fun onDrawerClosed(drawerView: View) {
-                super.onDrawerClosed(drawerView)
-                estadoDrawer = false // MENU CERRADO
-            }
-
-            override fun onDrawerOpened(drawerView: View) {
-                super.onDrawerOpened(drawerView)
-                estadoDrawer = true // MENU SE ENCUENTRA ABIERTO
-            }
-        })
-    }
-
-    private fun cerrarDrawer() {
-        drawerLayout?.closeDrawer(GravityCompat.START)
-        estadoDrawer = false
-    }
-
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         mMap.uiSettings.isMyLocationButtonEnabled = false
         mMap.uiSettings.isZoomControlsEnabled = false
         mMap.uiSettings.isCompassEnabled = true
         mMap.setMinZoomPreference(11.0f)
-        mMap.setPadding(0, 90, 0, 0)
 
         permiso()
         camaraAubicacion()
@@ -152,12 +111,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 btnUbicacion?.hide()
                 fabZoomMenos.hide()
                 fabZoomMas.hide()
+                efabRutas?.hide()
             }
 
             if(btnUbicacion?.visibility == View.GONE){
                 btnUbicacion?.show()
                 fabZoomMenos.show()
                 fabZoomMas.show()
+                efabRutas?.show()
             }
         }
     }
@@ -219,8 +180,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun ventanaRutas() {
-        cerrarDrawer()
-
         val ventana = AlertDialog.Builder(this, R.style.CustomDialogTheme)
         // CARGA EL LAYOUT PERSONALIZADO//
         val inflater = this.layoutInflater
@@ -237,53 +196,98 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         dialog.show()
 
         listaview.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-            mMap.clear()
             val ruta = parent.getItemAtPosition(position)
             dialog.dismiss()
-            chipRuta(view, ruta.toString())
-            btnRutas?.isEnabled = false
+            chipRuta(ruta.toString())
             seleccionRuta(ruta.toString())
         }
     }
 
-    private fun chipRuta(vista: View, ruta: String) {
+    private fun chipRuta(ruta: String) {
         val i = LayoutInflater.from(this)
         val chipItem = i.inflate(R.layout.chip, null, false) as Chip
 
-        chipItem.text = ruta
-        chipgroup?.addView(chipItem)
-        chipgroup?.visibility = View.VISIBLE
+        if(!rutaSeleccionada.contains(ruta)){ // VALIDA QUE NO ESTE SELECCIONADA LA RUTA //
+            rutaSeleccionada.add(ruta)
+
+            chipItem.text = ruta
+            chipgroup?.addView(chipItem)
+            chipgroup?.visibility = View.VISIBLE
+
+            if(ruta == "Eje"){
+                chipItem.chipBackgroundColor = ColorStateList.valueOf(Color.BLUE)
+            }
+            if(ruta == "Ruta 9"){
+                chipItem.chipBackgroundColor = ColorStateList.valueOf(Color.RED)
+
+            }
+            if(ruta == "Nacionalista"){
+                chipItem.chipBackgroundColor = ColorStateList.valueOf(resources.getColor(R.color.colorNaranja))
+            }
+        } else {
+            val toast = Toast(applicationContext)
+            //// CARGA EL LAYOUT A UNA VISTA ////
+            val view = layoutInflater.inflate(R.layout.mensaje, null)
+            toast.view = view
+            toast.duration = Toast.LENGTH_LONG
+            view.findViewById<TextView>(R.id.tvToastMensaje).text = getString(R.string.yaSeleccionada_str)
+            toast.show()
+        }
 
         chipItem.setOnClickListener {
-            mMap.clear()
             ventanaRutas()
-            btnRutas?.isEnabled = true
+        }
 
+        chipItem.setOnCloseIconClickListener {
             val anim = AlphaAnimation(1f, 0f)
-            anim.duration = 1
+            anim.duration = 5
             anim.setAnimationListener(object : Animation.AnimationListener {
                 override fun onAnimationRepeat(animation: Animation?) {}
                 override fun onAnimationEnd(animation: Animation?) {
                     chipgroup?.removeView(it)
                 }
-
                 override fun onAnimationStart(animation: Animation?) {}
             })
             it.startAnimation(anim)
-        }
 
-        chipItem.setOnCloseIconClickListener {
-            chipgroup?.removeView(chipItem)
-            btnRutas?.isEnabled = true
-            mMap.clear()
+            val nombre = chipItem.text
+            rutaSeleccionada.remove(nombre)
+
+            if(nombre == "Eje"){
+                mMap.clear()
+                if (rutaSeleccionada.contains("Ruta 9")){
+                    ruta9()
+                }
+                if (rutaSeleccionada.contains("Nacionalista")){
+                    nacionalista()
+                }
+            }
+            if(nombre == "Ruta 9"){
+                mMap.clear()
+                if (rutaSeleccionada.contains("Eje")){
+                    eje()
+                }
+                if (rutaSeleccionada.contains("Nacionalista")){
+                    nacionalista()
+                }
+            }
+            if(nombre == "Nacionalista"){
+                mMap.clear()
+                if (rutaSeleccionada.contains("Ruta 9")){
+                    ruta9()
+                }
+                if (rutaSeleccionada.contains("Eje")){
+                    eje()
+                }
+            }
         }
     }
 
-    override fun onBackPressed() {
-        if (estadoDrawer) {
-            cerrarDrawer()
-        } else {
-            super.onBackPressed()
+    private fun seleccionRuta(ruta: String) {
+        when (ruta) {
+            "Ruta 9" -> ruta9()
+            "Nacionalista" -> nacionalista()
+            "Eje" -> eje()
         }
     }
 
@@ -317,14 +321,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             poly?.add(p)
         }
         return poly
-    }
-
-    private fun seleccionRuta(ruta: String) {
-        when (ruta) {
-            "Ruta 9" -> ruta9()
-            "Nacionalista" -> nacionalista()
-            "Eje" -> eje()
-        }
     }
 
     private fun ruta9() {
@@ -411,12 +407,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             points = decodePoly(it)
 
             polylineOptions = PolylineOptions()
-            polylineOptions?.color(Color.RED)
+            polylineOptions?.color(resources.getColor(R.color.colorNaranja))
             polylineOptions?.width(7.5f)
             polylineOptions!!.addAll(points)
             mMap.addPolyline(polylineOptions)
         }
-
         rutaPuntos.clear()
         points?.clear()
         poly!!.clear()
@@ -441,14 +436,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             points = decodePoly(it)
 
             polylineOptions = PolylineOptions()
-            polylineOptions?.color(Color.RED)
+            polylineOptions?.color(Color.BLUE)
             polylineOptions?.width(7.5f)
             polylineOptions!!.addAll(points)
             mMap.addPolyline(polylineOptions)
+            points?.clear()
         }
-
         rutaPuntos.clear()
         points?.clear()
-        poly!!.clear()
+        poly?.clear()
     }
 }

@@ -8,4 +8,5 @@
     <string name="rutasDisponibles_str">Rutas disponibles</string>
 
     <string name="mensaje">Para el correcto funcionamiento de la app, Por favor acepta el permiso de ubicacion : )</string>
+    <string name="yaSeleccionada_str">Ya seleccionada!</string>
 </resources>
