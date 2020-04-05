@@ -5,17 +5,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MapsActivity">
+    tools:context=".Puntos">
 
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context=".MapsActivity" />
+        tools:context=".Puntos" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btnUbicacion"
+        android:id="@+id/fabUbicacion_puntos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="6dp"
@@ -25,7 +25,7 @@
         android:layout_alignParentBottom="true"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabZoomMenos"
+        android:id="@+id/fabZoomMenos_puntos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="7dp"
@@ -36,10 +36,10 @@
         android:layout_alignParentBottom="true"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabZoomMas"
+        android:id="@+id/fabZoomMas_puntos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@id/fabZoomMenos"
+        android:layout_above="@id/fabZoomMenos_puntos"
         android:layout_margin="6dp"
         android:layout_alignParentEnd="true"
         android:backgroundTint="@color/colorPrimary"
@@ -48,38 +48,28 @@
     <HorizontalScrollView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
         android:layout_marginStart="5dp"
         android:layout_marginEnd="5dp"
         android:layout_marginBottom="2dp"
-        android:layout_toStartOf="@id/fabZoomMenos"
-        android:layout_toEndOf="@id/btnUbicacion">
+        android:layout_toEndOf="@id/fabUbicacion_puntos"
+        android:layout_toStartOf="@id/fabZoomMenos_puntos"
+        android:layout_alignParentBottom="true">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_gravity="center">
 
             <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-                android:id="@+id/btnRutas_maps"
+                android:id="@+id/efabRutas_puntos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
-                android:backgroundTint="@color/colorPrimary"
                 android:text="@string/rutas_str"
                 android:textAllCaps="false"
-                app:icon="@drawable/camion_icono" />
-
-            <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-                android:id="@+id/efabPunto"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_margin="5dp"
                 android:backgroundTint="@color/colorPrimary"
-                android:text="@string/alerta_str"
-                android:textAllCaps="false"
-                app:icon="@drawable/pin_icono" />
+                app:icon="@drawable/camion_icono" />
         </LinearLayout>
     </HorizontalScrollView>
 
@@ -96,7 +86,7 @@
             android:orientation="horizontal">
 
             <com.google.android.material.chip.ChipGroup
-                android:id="@+id/cg_MapsActivity"
+                android:id="@+id/cg_Puntos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:visibility="gone"

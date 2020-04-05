@@ -3,73 +3,87 @@ package com.irv.rutas
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.location.Criteria
 import android.location.Location
+import android.location.LocationListener
 import android.location.LocationManager
-import android.os.Build
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
+import android.widget.Toast
 import android.widget.ListView
 import android.widget.ArrayAdapter
 import android.widget.AdapterView
-import android.widget.Toast
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.PolylineOptions
+import com.google.android.gms.maps.model.*
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputEditText
 import com.irv.rutas.Rutas.Eje
 import com.irv.rutas.Rutas.Nacionalista
 import com.irv.rutas.Rutas.Ruta9
-import kotlinx.android.synthetic.main.activity_maps.*
 
-class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
+class Puntos : AppCompatActivity(), OnMapReadyCallback, LocationListener {
 
     private lateinit var mMap: GoogleMap
-    private var miUbicacion: Location? = null
+    private var lon : Double? = null
+    private var lat : Double? = null
     private var chipgroup: ChipGroup? = null
-    private var btnUbicacion : FloatingActionButton? = null
-    private var fbaZoomMenos : FloatingActionButton? = null
-    private var fbaZoomMas : FloatingActionButton? = null
+    private var fabUbicacion : FloatingActionButton? = null
+    private var fabZoomMenos : FloatingActionButton? = null
+    private var fabZoomMas : FloatingActionButton? = null
     private var efabRutas : ExtendedFloatingActionButton? = null
-    private var efabPunto : ExtendedFloatingActionButton? = null
+
     private var listaRutas : ArrayList<String>? = null
     private var rutaSeleccionada : ArrayList<String> = ArrayList()
+
+    private var posicion : Location? = null
+    private var marcador : Location? = null
+    private var banderaMarcador = false
+    private var punto : Marker? = null
+    private var distancia : Double? = null
+    private var distanciaUsuario : Double? = null
+
     private var points: ArrayList<LatLng>? = null
     private var polylineOptions: PolylineOptions? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_maps)
+        setContentView(R.layout.activity_puntos)
         supportActionBar?.hide()
 
         val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        chipgroup = findViewById(R.id.cg_MapsActivity)
-        btnUbicacion = findViewById(R.id.btnUbicacion)
-        fbaZoomMenos = findViewById(R.id.fabZoomMenos)
-        fbaZoomMas = findViewById(R.id.fabZoomMas)
-        efabRutas = findViewById(R.id.btnRutas_maps)
-        efabPunto = findViewById(R.id.efabPunto)
+        chipgroup = findViewById(R.id.cg_Puntos)
+        fabUbicacion = findViewById(R.id.fabUbicacion_puntos)
+        fabZoomMas = findViewById(R.id.fabZoomMas_puntos)
+        fabZoomMenos = findViewById(R.id.fabZoomMenos_puntos)
+        efabRutas = findViewById(R.id.efabRutas_puntos)
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),1000)
+        } else {
+            locationStart()
+        }
 
         ///// RUTAS /////
         listaRutas = ArrayList()
@@ -86,11 +100,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             ventanaRutas()
         }
 
-        efabPunto?.setOnClickListener {
-            startActivity(Intent(this, Puntos::class.java))
-        }
-
-        btnUbicacion?.setOnClickListener {
+        fabUbicacion?.setOnClickListener {
             camaraAubicacion()
         }
 
@@ -108,84 +118,42 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.uiSettings.isMyLocationButtonEnabled = false
         mMap.uiSettings.isZoomControlsEnabled = false
         mMap.uiSettings.isCompassEnabled = true
+        mMap.uiSettings.isMapToolbarEnabled = false
         mMap.setMinZoomPreference(11.0f)
-
-        permiso()
-        camaraAubicacion()
+        mMap.isMyLocationEnabled = true
 
         mMap.setOnMapClickListener {
-            if(btnUbicacion?.visibility == View.VISIBLE){
-                btnUbicacion?.hide()
-                fabZoomMenos.hide()
-                fabZoomMas.hide()
+            if(fabUbicacion?.visibility == View.VISIBLE){
+                fabUbicacion?.hide()
+                fabZoomMenos?.hide()
+                fabZoomMas?.hide()
                 efabRutas?.hide()
-                efabPunto?.hide()
             }
 
-            if(btnUbicacion?.visibility == View.GONE){
-                btnUbicacion?.show()
-                fabZoomMenos.show()
-                fabZoomMas.show()
+            if(fabUbicacion?.visibility == View.GONE){
+                fabUbicacion?.show()
+                fabZoomMenos?.show()
+                fabZoomMas?.show()
                 efabRutas?.show()
-                efabPunto?.show()
             }
         }
-    }
 
-    @SuppressLint("MissingPermission")
-    private fun permiso() {
-        val permisoActivado: Boolean
+        mMap.setOnMapLongClickListener {
+            if(!banderaMarcador){
+                ventanaDistancia()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            permisoActivado = estadoPermisoUbicacion()
+                punto = mMap.addMarker(MarkerOptions().position(it))
 
-            if (permisoActivado == false) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-                    //// MIUESTRA EL DIALOG PARA EL PERMISO ////
-                    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 10)
-                }
-            } else { // PERMISO YA DADO
-                mMap.isMyLocationEnabled = true
-                camaraAubicacion()
-            }
-        } else {// VERSION MENOR A 6.0
-            mMap.isMyLocationEnabled = true
-            camaraAubicacion()
-        }
-    }
+                marcador = Location("Test")
+                marcador?.latitude = it.latitude
+                marcador?.longitude = it.longitude
 
-    @SuppressLint("MissingPermission")
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        if (requestCode == 10) {
-            if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                mMap.isMyLocationEnabled = true
-            }
-        }
-    }
-
-    private fun estadoPermisoUbicacion(): Boolean {
-        val resultado = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-        return resultado == PackageManager.PERMISSION_GRANTED
-    }
-
-    @SuppressLint("MissingPermission")
-    private fun camaraAubicacion() {
-        val locationManager = applicationContext.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        val criteria = Criteria()
-        miUbicacion = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false))
-        try {
-            val latitude = miUbicacion?.latitude
-            val longitud = miUbicacion?.longitude
-
-            if(latitude != null && longitud != null){
-                val latlog = LatLng(latitude, longitud)
-                val cu = CameraUpdateFactory.newLatLng(latlog)
-                mMap.animateCamera(cu)
-                mMap.setMinZoomPreference(11.0f)
+                val dis = posicion?.distanceTo(marcador)
+                Toast.makeText(applicationContext, "$dis Metros", Toast.LENGTH_SHORT).show()
             } else {
-                Snackbar.make(findViewById(R.id.map), "Ubicacion no disponible", Snackbar.LENGTH_LONG).show()
+
             }
-        } catch (e: Exception) { }
+        }
     }
 
     private fun ventanaRutas() {
@@ -346,5 +314,94 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             mMap.addPolyline(polylineOptions)
         }
         points?.clear()
+    }
+
+    private fun ventanaDistancia() {
+        val ventana = AlertDialog.Builder(this, R.style.CustomDialogTheme)
+        // CARGA EL LAYOUT PERSONALIZADO//
+        val inflater = this.layoutInflater
+        val dialogView = inflater.inflate(R.layout.ventana_distancia, null)
+        ventana.setCancelable(false)
+        ventana.setView(dialogView)
+
+        val campoDistancia = dialogView.findViewById<TextInputEditText>(R.id.tietDistancia)
+
+        ventana.setPositiveButton(R.string.aceptar_str){ _, _ ->
+            banderaMarcador = true
+            distanciaUsuario = campoDistancia.text.toString().toDouble()
+            mMap.addCircle(CircleOptions().center(LatLng(marcador!!.latitude, marcador!!.longitude)).radius(campoDistancia.text.toString().toDouble()).strokeWidth(3f).strokeColor(Color.RED).fillColor(Color.argb(70, 150, 50, 50)))
+        }
+
+        ventana.setNeutralButton(R.string.cancelar_str){ _, _ ->
+            punto?.remove()
+            banderaMarcador = false
+        }
+
+        val dialog: AlertDialog = ventana.create()
+
+        dialog.show()
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+
+        campoDistancia.addTextChangedListener(object : TextWatcher{
+            override fun afterTextChanged(p0: Editable?) {}
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = campoDistancia.length() > 0
+            }
+        })
+    }
+
+    private fun camaraAubicacion() {
+        if(lat != null && lon != null) {
+            val latlog = LatLng(lat!!, lon!!)
+            val cu = CameraUpdateFactory.newLatLng(latlog)
+            mMap.animateCamera(cu)
+            mMap.setMinZoomPreference(11.0f)
+        } else {
+            Snackbar.make(findViewById(R.id.map), "Ubicacion no disponible", Snackbar.LENGTH_LONG).show()
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        if (requestCode == 10) {
+            if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                mMap.isMyLocationEnabled = true
+            }
+        }
+    }
+
+    private fun locationStart() {
+        val mlocManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1000)
+            return
+        }
+        mlocManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0f, this)
+        mlocManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, this)
+    }
+
+    override fun onLocationChanged(p0: Location?) {
+        lat = p0?.latitude
+        lon = p0?.longitude
+
+        posicion = p0
+
+        if(banderaMarcador){
+            val dis = posicion?.distanceTo(marcador)!!.toDouble()
+
+            if(dis!! < distanciaUsuario!!){
+                Toast.makeText(applicationContext, "AVISO!", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+    override fun onStatusChanged(p0: String?, p1: Int, p2: Bundle?) {}
+    override fun onProviderEnabled(p0: String?) {}
+    override fun onProviderDisabled(p0: String?) {}
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        finish()
     }
 }

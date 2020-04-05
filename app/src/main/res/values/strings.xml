@@ -9,4 +9,11 @@
 
     <string name="mensaje">Para el correcto funcionamiento de la app, Por favor acepta el permiso de ubicacion : )</string>
     <string name="yaSeleccionada_str">Ya seleccionada!</string>
+
+    <string name="alerta_str">Alerta</string>
+    <string name="aceptar_str">Aceptar</string>
+    <string name="cancelar_str">Cancelar</string>
+    <string name="distancia_str">Distancia</string>
+
+    <string name="title_activity_puntos">Map</string>
 </resources>
